@@ -1,5 +1,8 @@
 <template>
-  <div><AppHeader></AppHeader></div>
+  <div>
+    <AppHeader></AppHeader>
+    <router-view></router-view>
+  </div>
 </template>
 
 <script>
