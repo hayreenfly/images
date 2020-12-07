@@ -10,7 +10,8 @@ export default {
     const querystring = {
       included_granted_scopes: true,
       response_type: "token",
-      scope: "https://www.googleapis.com/auth/photoslibrary",
+      scope:
+        "https://www.googleapis.com/auth/photoslibrary.readonly https://www.googleapis.com/auth/photoslibrary.appendonly https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata https://www.googleapis.com/auth/photoslibrary.edit.appcreateddata https://www.googleapis.com/auth/photoslibrary https://www.googleapis.com/auth/photoslibrary.sharing",
       client_id: CLIENT_ID,
       redirect_uri: "http://localhost:8080",
     };
@@ -24,22 +25,45 @@ export default {
       },
     });
   },
-  upload(images, token) {
+  uploadImages(images, token) {
     const promises = Array.from(images).map((image) => {
-      const formData = new FormData();
-      formData.append("image", image);
-
-      return axios.post(
-        `https://photoslibrary.googleapis.com/v1/uploads`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      return new Promise((r) => {
+        axios
+          .post("https://photoslibrary.googleapis.com/v1/uploads", image, {
+            headers: {
+              "Content-Type": "application/octet-stream",
+              "X-Goog-Upload-File-Name": image.name,
+              "X-Goog-Upload-Protocol": "raw",
+              Authorization: `Bearer ${token}`,
+            },
+          })
+          .then((response) => {
+            r({
+              description: "item-description",
+              simpleMediaItem: {
+                fileName: image.name,
+                uploadToken: response.data,
+              },
+            });
+          });
+      });
     });
-
-    return Promise.all(promises);
+    return Promise.all(promises).then((e) => {
+      return new Promise((resolve, reject) => {
+        axios
+          .post(
+            "https://photoslibrary.googleapis.com/v1/mediaItems:batchCreate",
+            JSON.stringify({ newMediaItems: e }),
+            {
+              headers: {
+                "Content-type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          )
+          .then(resolve)
+          .catch(reject);
+      });
+    });
   },
 };

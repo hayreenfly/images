@@ -3,7 +3,7 @@ import Vue from "vue";
 import auth from "./modules/auth";
 import images from "./modules/images";
 
-Vue.use(Vuex); //connects vue with vuex
+Vue.use(Vuex);
 
 export default new Vuex.Store({
   modules: {

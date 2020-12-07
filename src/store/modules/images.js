@@ -16,11 +16,13 @@ const actions = {
     commit("setImages", response.data.mediaItems);
   },
   async uploadImages({ rootState }, images) {
-    //Get the access token
+    // Get the access token
     const { token } = rootState.auth;
-    //Call our API module to do the upload
-    await api.upload(images, token);
+
+    // Call our API module to do the upload
+    await api.uploadImages(images, token);
     //Redirect our user to ImageList component
+
     router.push("/galleries");
   },
 };
